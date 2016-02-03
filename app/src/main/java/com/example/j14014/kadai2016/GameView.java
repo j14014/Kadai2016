@@ -9,15 +9,17 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback, SensorEventListener {
+
+    private static final String TAG = "BLUETOOTH_SAMPLE";
 
     private static final float ACCEL_WEIGHT = 3f;
 
@@ -28,6 +30,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     private Droid droid;
 
     private final List<BaseObject> bulletList = new ArrayList<BaseObject>();
+    public final List<BaseObject> enemybulletList = new ArrayList<BaseObject>();
+    private final List<BaseObject> sendbulletList = new ArrayList<BaseObject>();
 
     public GameView(Context context) {
         super(context);
@@ -47,6 +51,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             droid = new Droid(droidBitmap, width, height);
         }
 
+        /*
+            Droidの当たり判定
+         */
         if (droid.getDroidX() < 0) {
             droid.setDroidX(0);
         }
@@ -60,9 +67,50 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             droid.setDroidY(height - droid.getDroidheight());
         }
 
+        /*
+            範囲外（画面外）へ移動した弾の座標をコピー
+         */
+        for (int i = 0; i < bulletList.size(); i++) {
+            float bullety = bulletList.get(i).yPosition;
+            if (bullety < 0) {
+                enemybulletList.add(bulletList.get(i));
+            }
+
+        }
+
+        for (int i = 0; i < enemybulletList.size(); i++) {
+
+            //BaseObject bullet = enemybulletList.remove(i);
+            float bulletx = enemybulletList.get(i).xPosition;
+            float bullety = enemybulletList.get(i).yPosition;
+
+            String message = String.valueOf(bulletx);
+
+            Log.d(message,"Heyyyyyyyyyyy!!!");
+            Log.d(enemybulletList.size() + "", i + "");
+
+            sendMessage(message);
+
+        }
+
+        // 1Pの弾
         drawObjectList(canvas, bulletList, width, height);
 
+        // 2P
+        drawObjectList(canvas, enemybulletList, width, height);
+
         droid.draw(canvas);
+    }
+
+    private void sendMessage(String message){
+        byte[] send = message.getBytes();
+        try {
+            PairingView.connection.write(send);
+            Log.d(TAG,"Paryyyyyyyyy!!!!!!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(message,"yeh!!!!!!!!!");
+        }
     }
 
     private static void drawObjectList(Canvas canvas, List<BaseObject> objectList, int width, int height) {
@@ -82,14 +130,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                fire(event.getY(), event.getX());
+                fire(event.getX(), event.getY());
                 break;
         }
 
         return super.onTouchEvent(event);
     }
 
-    private void fire(float y, float x) {
+    private void fire(float x, float y) {
+        Log.d("fireStart","Start");
         float centerX = droid.getDroidX() + droid.getDroidwidth() / 2;
         float centerY = droid.getDroidY() + droid.getDroidheight() / 2;
 
@@ -97,6 +146,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
         Bullet bullet = new Bullet(alignX, centerX, centerY);
         bulletList.add(0, bullet);
+
     }
 
     private DrawThread drawThread;
@@ -123,6 +173,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
             }
         }
     }
+
+
 
     public void startDrawThread() {
         stopDrawThread();

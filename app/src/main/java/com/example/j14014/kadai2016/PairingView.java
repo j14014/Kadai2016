@@ -63,13 +63,14 @@ public class PairingView extends Activity implements OnClickListener {
     private static final String NAME = "BLUETOOTH_ANDROID";
 
     // 接続時のデータ送受信処理のためのThread
-    private ConnectedThread connection;
-
-    // EditText(Inputを受け取る)
-    private EditText editText;
+    public static ConnectedThread connection;
 
     // TextView
     private TextView textView;
+
+    public BluetoothSocket mmSocket;
+    public InputStream mmInStream;
+    public OutputStream mmOutStream;
 
 
 
@@ -269,21 +270,13 @@ public class PairingView extends Activity implements OnClickListener {
     }
 
     /**
-     * Server, Client共通 接続が確立した際に呼び出される
-     */
-    public void manageConnectedSocket(BluetoothSocket socket) {
-        Log.i(TAG, "Connection");
-        connection = new ConnectedThread(socket);
-        connection.start();
-    }
-
-    /**
      * 接続確立時のデータ送受信用のThread
      */
-    private class ConnectedThread extends Thread {
-        private final BluetoothSocket mmSocket;
-        private final InputStream mmInStream;
-        private final OutputStream mmOutStream;
+    public class ConnectedThread extends Thread {
+
+        private GameView gameView;
+
+        public float bulletchart;
 
         public ConnectedThread(BluetoothSocket socket) {
             Log.i(TAG, "ConnectedThread");
@@ -315,13 +308,12 @@ public class PairingView extends Activity implements OnClickListener {
                     bytes = mmInStream.read(buffer);
                     // 取得したデータをStringの変換
                     String readMsg = new String(buffer, 0, bytes, "UTF-8");
-                    // Logに表示
-                    Log.d(TAG, "GET: " + readMsg);
+                    // readMsgをfloatに変換
+                    bulletchart = Float.parseFloat(readMsg);
 
-                    // Hanlder経由で画面に描画
-                    Message msg = new Message();
-                    msg.obj = readMsg;
-                    mHandler.sendMessage(msg);
+                    //gameView.enemyfire(bulletchart, 0);
+
+                    Log.d("bulletchartの中身",bulletchart + "");
 
                 } catch (IOException e) {
                     break;
@@ -336,6 +328,7 @@ public class PairingView extends Activity implements OnClickListener {
             try {
                 mmOutStream.write(bytes);
             } catch (IOException e) {
+
             }
         }
 
@@ -350,12 +343,13 @@ public class PairingView extends Activity implements OnClickListener {
         }
     }
 
-    final Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            String readMsg = (String) msg.obj;
-            textView.setText(readMsg);
-            textView.invalidate();
-        }
-    };
+    /**
+     * Server, Client共通 接続が確立した際に呼び出される
+     */
+    public void manageConnectedSocket(BluetoothSocket socket) {
+        Log.i(TAG, "Connection");
+        connection = new ConnectedThread(socket);
+        connection.start();
+    }
 
 }
