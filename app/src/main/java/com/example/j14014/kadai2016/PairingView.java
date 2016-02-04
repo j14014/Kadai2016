@@ -9,20 +9,19 @@ import java.util.UUID;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,7 +29,7 @@ import android.widget.Toast;
 public class PairingView extends Activity implements OnClickListener {
 
     // ログ用タグ
-    private static final String TAG = "BLUETOOTH_SAMPLE";
+    private static final String TAG = "PAIRING_VIEW";
 
     // Bluetoothアダプタ
     private BluetoothAdapter mAdapter;
@@ -38,17 +37,14 @@ public class PairingView extends Activity implements OnClickListener {
     // ペアリング済みBluetoothDevice名を入れるArray
     private ArrayList<BluetoothDevice> mDevices;
 
-    // Button1
-    private Button mButton1;
-
     // Button2
-    private Button mButton2;
+    private Button serverButton;
 
     // Button3
-    private Button mButton3;
+    private Button clientButton;
 
     // Button4
-    private Button mButton4;
+    private Button startButton;
 
     // SPPのUUID
     private UUID MY_UUID = UUID.fromString("1111111-0000-1000-1111-00AAEECCAAFF");
@@ -65,48 +61,37 @@ public class PairingView extends Activity implements OnClickListener {
     // 接続時のデータ送受信処理のためのThread
     public static ConnectedThread connection;
 
-    // TextView
-    private TextView textView;
-
-    public BluetoothSocket mmSocket;
-    public InputStream mmInStream;
-    public OutputStream mmOutStream;
-
-
-
+    private GameView gameView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pairing_main);
 
-        // Get Device List Button
-        mButton1 = (Button) findViewById(R.id.button1);
-        mButton1.setOnClickListener(this);
+        // ペアリング済みデバイスリストを取得する
+        mDevices = new ArrayList<BluetoothDevice>();
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        Set<BluetoothDevice> devices = mAdapter.getBondedDevices();
+
+        // ペアリング済みデバイスのリスト
+        for (BluetoothDevice device : devices) {
+            mDevices.add(device);
+            // Toastで表示する
+            Toast.makeText(this, "Name:" + device.getName(), Toast.LENGTH_LONG).show();
+        }
 
         // Start Server Button
-        mButton2 = (Button) findViewById(R.id.button2);
-        mButton2.setOnClickListener(this);
+        serverButton = (Button) findViewById(R.id.serverButton);
+        serverButton.setOnClickListener(this);
 
         // Start Client Button
-        mButton3 = (Button) findViewById(R.id.button3);
-        mButton3.setOnClickListener(this);
+        clientButton = (Button) findViewById(R.id.clientButton);
+        clientButton.setOnClickListener(this);
 
         // Game View Button
-        mButton4 = (Button) findViewById(R.id.button4);
-        mButton4.setOnClickListener(this);
+        startButton = (Button) findViewById(R.id.startButton);
+        startButton.setOnClickListener(this);
 
-        //受信したメッセージを描画
-        textView = (TextView) findViewById(R.id.TextView01);
-
-        /*
-        //フルスクリーン
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        gameView = new GameView(this);
-        setContentView(gameView);
-        */
     }
 
 
@@ -131,26 +116,13 @@ public class PairingView extends Activity implements OnClickListener {
 
     @Override
     public void onClick(View view) {
-        // ペアリング済みデバイスリストを取得する
-        if (view.equals(mButton1)) {
-            mDevices = new ArrayList<BluetoothDevice>();
-            mAdapter = BluetoothAdapter.getDefaultAdapter();
-            Set<BluetoothDevice> devices = mAdapter.getBondedDevices();
-
-            // ペアリング済みデバイスのリスト
-            for (BluetoothDevice device : devices) {
-                mDevices.add(device);
-                // Toastで表示する
-                Toast.makeText(this, "Name:" + device.getName(), Toast.LENGTH_LONG).show();
-            }
-        }
         // Serverを起動
-        else if (view.equals(mButton2)) {
+        if (view.equals(serverButton)) {
             serverThread = new ServerThread();
             serverThread.start();
         }
         // Clientを起動
-        else if (view.equals(mButton3)) {
+        if (view.equals(clientButton)) {
             if (mDevices != null) {
                 for (int i = 0; i < mDevices.size(); i++) {
                     clientThread = new ClientThread(mDevices.get(i));
@@ -159,7 +131,7 @@ public class PairingView extends Activity implements OnClickListener {
             }
         }
         // Game View 起動
-        else if (view.equals(mButton4)) {
+        else if (view.equals(startButton)) {
             Intent battle = new Intent(PairingView.this, MainActivity.class);
             startActivity(battle);
         }
@@ -270,12 +242,23 @@ public class PairingView extends Activity implements OnClickListener {
     }
 
     /**
+     * Server, Client共通 接続が確立した際に呼び出される
+     */
+    public void manageConnectedSocket(BluetoothSocket socket) {
+        Log.i(TAG, "Connection");
+        connection = new ConnectedThread(socket);
+        connection.start();
+    }
+
+    /**
      * 接続確立時のデータ送受信用のThread
      */
     public class ConnectedThread extends Thread {
+        private BluetoothSocket mmSocket;
+        private InputStream mmInStream;
+        private OutputStream mmOutStream;
 
-        private GameView gameView;
-
+        public String readMsg;
         public float bulletchart;
 
         public ConnectedThread(BluetoothSocket socket) {
@@ -307,13 +290,16 @@ public class PairingView extends Activity implements OnClickListener {
                     // InputStreamから値を取得
                     bytes = mmInStream.read(buffer);
                     // 取得したデータをStringの変換
-                    String readMsg = new String(buffer, 0, bytes, "UTF-8");
+                    readMsg = new String(buffer, 0, bytes, "UTF-8");
                     // readMsgをfloatに変換
                     bulletchart = Float.parseFloat(readMsg);
 
-                    //gameView.enemyfire(bulletchart, 0);
-
-                    Log.d("bulletchartの中身",bulletchart + "");
+                    try {
+                        Bullet bullet = new Bullet(bulletchart, 100);
+                        gameView.enemybulletList.add(bullet);
+                    } catch (Exception e) {
+                        Log.d(TAG,"Error" + e);
+                    }
 
                 } catch (IOException e) {
                     break;
@@ -341,15 +327,6 @@ public class PairingView extends Activity implements OnClickListener {
             } catch (IOException e) {
             }
         }
-    }
-
-    /**
-     * Server, Client共通 接続が確立した際に呼び出される
-     */
-    public void manageConnectedSocket(BluetoothSocket socket) {
-        Log.i(TAG, "Connection");
-        connection = new ConnectedThread(socket);
-        connection.start();
     }
 
 }

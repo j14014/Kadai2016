@@ -19,7 +19,7 @@ import java.util.List;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback, SensorEventListener {
 
-    private static final String TAG = "BLUETOOTH_SAMPLE";
+    private static final String TAG = "GAME_VIEW";
 
     private static final float ACCEL_WEIGHT = 3f;
 
@@ -31,7 +31,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     private final List<BaseObject> bulletList = new ArrayList<BaseObject>();
     public final List<BaseObject> enemybulletList = new ArrayList<BaseObject>();
-    private final List<BaseObject> sendbulletList = new ArrayList<BaseObject>();
+    public final List<BaseObject> sendbulletList = new ArrayList<BaseObject>();
 
     public GameView(Context context) {
         super(context);
@@ -72,32 +72,32 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
          */
         for (int i = 0; i < bulletList.size(); i++) {
             float bullety = bulletList.get(i).yPosition;
+
+            //Log.d(bulletList.size() + "", i + "");
+
             if (bullety < 0) {
-                enemybulletList.add(bulletList.get(i));
+                sendbulletList.add(bulletList.get(i));
             }
 
         }
 
-        for (int i = 0; i < enemybulletList.size(); i++) {
+        for (int i = 0; i < sendbulletList.size(); i++) {
+                BaseObject bullet = sendbulletList.remove(i);
+                //float bulletx = sendbulletList.get(i).xPosition;
 
-            //BaseObject bullet = enemybulletList.remove(i);
-            float bulletx = enemybulletList.get(i).xPosition;
-            float bullety = enemybulletList.get(i).yPosition;
+                String message = String.valueOf(bullet.xPosition);
 
-            String message = String.valueOf(bulletx);
+                //Log.d(sendbulletList.size() + "", i + "");
 
-            Log.d(message,"Heyyyyyyyyyyy!!!");
-            Log.d(enemybulletList.size() + "", i + "");
-
-            sendMessage(message);
-
+                sendMessage(message);
         }
 
         // 1Pの弾
         drawObjectList(canvas, bulletList, width, height);
-
         // 2P
         drawObjectList(canvas, enemybulletList, width, height);
+
+        //Log.d("bulletchartの中身", PairingView.connection.bulletchart + "");
 
         droid.draw(canvas);
     }
@@ -106,10 +106,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         byte[] send = message.getBytes();
         try {
             PairingView.connection.write(send);
-            Log.d(TAG,"Paryyyyyyyyy!!!!!!");
         } catch (Exception e) {
             e.printStackTrace();
-            Log.d(message,"yeh!!!!!!!!!");
         }
     }
 
@@ -128,24 +126,38 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        /*
+        座標の確認
+
+        float x = event.getX();
+        float y = event.getY();
+        Log.d(x + "",y + "");
+
+        */
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                fire(event.getX(), event.getY());
+                fire();
                 break;
         }
 
         return super.onTouchEvent(event);
     }
 
-    private void fire(float x, float y) {
+    private void fire() {
         Log.d("fireStart","Start");
         float centerX = droid.getDroidX() + droid.getDroidwidth() / 2;
         float centerY = droid.getDroidY() + droid.getDroidheight() / 2;
 
-        float alignX = (x - centerX) / Math.abs(y - centerY);
+        Bullet bullet = new Bullet(centerX, centerY);
+        bulletList.add(bullet);
 
-        Bullet bullet = new Bullet(alignX, centerX, centerY);
-        bulletList.add(0, bullet);
+        /*
+        if (bulletList.size() == 0) {
+
+        }
+        */
 
     }
 

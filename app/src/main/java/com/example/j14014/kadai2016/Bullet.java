@@ -12,10 +12,10 @@ public class Bullet extends BaseObject {
 
     private static final float SIZE = 15f;
 
-    public final float alignX;
+    //public final float alignX;
 
-    Bullet(float alignX, float x, float y) {
-        this.alignX = alignX;
+    Bullet( float x, float y) {
+        //this.alignX = alignX;
         yPosition = y;
         xPosition = x;
 

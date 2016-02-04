@@ -20,17 +20,6 @@ public class Droid extends BaseObject {
 
         droidwidth = bitmap.getWidth();
         droidheight = bitmap.getHeight();
-
-        /* 画面の下端中央の位置
-        int left = (width - bitmap.getWidth()) / 2;
-        int top = height - bitmap.getHeight();
-        int right = left + bitmap.getWidth();
-        int bottom = top + bitmap.getHeight();
-        rect = new Rect(left, top, right, bottom);
-
-        yPosition = rect.centerY();
-        xPosition = rect.centerX();
-        */
     }
 
     @Override

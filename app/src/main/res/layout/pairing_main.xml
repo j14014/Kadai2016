@@ -5,37 +5,23 @@
     android:orientation="vertical" >
 
     <Button
-        android:id="@+id/button1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Get Device List" >
-    </Button>
-
-    <Button
-        android:id="@+id/button2"
+        android:id="@+id/serverButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Start Server" >
     </Button>
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/clientButton"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Start Client" >
     </Button>
 
     <Button
-        android:id="@+id/button4"
+        android:id="@+id/startButton"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Game View"/>
-
-    <TextView
-        android:id="@+id/TextView01"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="" >
-    </TextView>
 
 </LinearLayout>
