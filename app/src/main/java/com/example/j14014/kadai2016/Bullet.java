@@ -14,22 +14,39 @@ public class Bullet extends BaseObject {
 
     //public final float alignX;
 
-    Bullet( float x, float y) {
+    Bullet( float x, float y, boolean flag) {
         //this.alignX = alignX;
         yPosition = y;
         xPosition = x;
 
+        bulletFlag = flag;
+
         paint.setColor(Color.RED);
+    }
+
+    Bullet (float x) {
+
+        xPosition = x;
     }
 
     @Override
     public void move() {
-        yPosition -= 5 * MOVE_WEIGHT;
+        if (bulletFlag == true) {
+            yPosition -= 5 * MOVE_WEIGHT;
+        } else if (bulletFlag == false) {
+            yPosition += 5 * MOVE_WEIGHT;
+        }
+
         //xPosition += alignX * MOVE_WEIGHT;
     }
+
+
 
     @Override
     public void draw(Canvas canvas) {
         canvas.drawCircle(xPosition, yPosition, SIZE, paint);
     }
+
 }
+
+

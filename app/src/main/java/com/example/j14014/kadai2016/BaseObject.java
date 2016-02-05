@@ -10,6 +10,8 @@ public abstract class BaseObject {
     float yPosition;
     float xPosition;
 
+    boolean bulletFlag;
+
     public abstract void draw(Canvas canvas);
 
     public boolean isAvailable(int width, int height) {

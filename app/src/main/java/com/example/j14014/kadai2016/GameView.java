@@ -29,6 +29,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
     private Droid droid;
 
+    public boolean flag;
+
     private final List<BaseObject> bulletList = new ArrayList<BaseObject>();
     public final List<BaseObject> enemybulletList = new ArrayList<BaseObject>();
     public final List<BaseObject> sendbulletList = new ArrayList<BaseObject>();
@@ -87,17 +89,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
                 String message = String.valueOf(bullet.xPosition);
 
-                //Log.d(sendbulletList.size() + "", i + "");
-
                 sendMessage(message);
+
         }
 
         // 1Pの弾
         drawObjectList(canvas, bulletList, width, height);
         // 2P
         drawObjectList(canvas, enemybulletList, width, height);
-
-        //Log.d("bulletchartの中身", PairingView.connection.bulletchart + "");
 
         droid.draw(canvas);
     }
@@ -129,11 +128,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
 
         /*
         座標の確認
-
         float x = event.getX();
         float y = event.getY();
         Log.d(x + "",y + "");
-
         */
 
         switch (event.getAction()) {
@@ -150,14 +147,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Sen
         float centerX = droid.getDroidX() + droid.getDroidwidth() / 2;
         float centerY = droid.getDroidY() + droid.getDroidheight() / 2;
 
-        Bullet bullet = new Bullet(centerX, centerY);
+        //Bullet bullet = new Bullet(centerX, centerY);
+        Bullet bullet = new Bullet(centerX, centerY,true);
         bulletList.add(bullet);
-
-        /*
-        if (bulletList.size() == 0) {
-
-        }
-        */
 
     }
 

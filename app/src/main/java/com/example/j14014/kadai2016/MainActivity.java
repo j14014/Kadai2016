@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    private GameView gameView;
+    public static GameView gameView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         gameView = new GameView(this);
+        PairingView.gameView = gameView;
         setContentView(gameView);
     }
 

@@ -14,15 +14,12 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -61,7 +58,7 @@ public class PairingView extends Activity implements OnClickListener {
     // 接続時のデータ送受信処理のためのThread
     public static ConnectedThread connection;
 
-    private GameView gameView;
+    public static GameView gameView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -294,12 +291,10 @@ public class PairingView extends Activity implements OnClickListener {
                     // readMsgをfloatに変換
                     bulletchart = Float.parseFloat(readMsg);
 
-                    try {
-                        Bullet bullet = new Bullet(bulletchart, 100);
-                        gameView.enemybulletList.add(bullet);
-                    } catch (Exception e) {
-                        Log.d(TAG,"Error" + e);
-                    }
+                    Log.d(TAG, bulletchart + "");
+
+                    Bullet enemybullet = new Bullet(bulletchart,0,false);
+                    gameView.enemybulletList.add(enemybullet);
 
                 } catch (IOException e) {
                     break;
